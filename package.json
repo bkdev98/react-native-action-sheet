@@ -1,6 +1,6 @@
 {
-  "name": "@expo/react-native-action-sheet",
-  "version": "0.4.0",
+  "name": "@bkdev98/react-native-awesome-action-sheet",
+  "version": "1.0.0",
   "description": "A cross-platform ActionSheet for React Native",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/expo/react-native-action-sheet.git"
+    "url": "https://github.com/bkdev98/react-native-awesome-action-sheet.git"
   },
   "keywords": [
     "react-native",
@@ -22,12 +22,12 @@
     "index.js",
     "README.md"
   ],
-  "author": "Jesse Ruder <jesse@sixfivezero.net>",
+  "author": "Quoc Khanh <bkdev98@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/expo/react-native-action-sheet/issues"
+    "url": "https://github.com/bkdev98/react-native-awesome-action-sheet/issues"
   },
-  "homepage": "https://github.com/expo/react-native-action-sheet",
+  "homepage": "https://github.com/bkdev98/react-native-awesome-action-sheet",
   "dependencies": {
     "hoist-non-react-statics": "^1.2.0"
   },

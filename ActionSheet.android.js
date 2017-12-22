@@ -1,11 +1,11 @@
 // @flow
 
-import React, { PropTypes } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Animated,
-  BackAndroid,
+  BackHandler,
   Easing,
-  PixelRatio,
   Platform,
   StyleSheet,
   Text,
@@ -15,7 +15,6 @@ import {
   TouchableNativeFeedback,
   TouchableWithoutFeedback,
   View,
-  ScrollView,
 } from 'react-native';
 
 type ActionSheetOptions = {
@@ -50,8 +49,10 @@ type ActionSheetProps = {
   useNativeDriver: ?boolean,
 };
 
-const OPACITY_ANIMATION_TIME = 150;
-const PIXEL = 1 / PixelRatio.get();
+const OPACITY_ANIMATION_IN_TIME = 225;
+const OPACITY_ANIMATION_OUT_TIME = 195;
+const EASING_OUT = Easing.bezier(0.25, 0.46, 0.45, 0.94)
+const EASING_IN = Easing.out(EASING_OUT)
 
 class ActionGroup extends React.Component {
   props: ActionGroupProps;
@@ -85,15 +86,19 @@ class ActionGroup extends React.Component {
     );
 
     for (let i = startIndex; i < startIndex + length; i++) {
-      let color = '#444444';
+      let color = '#212121';
       if (i === destructiveButtonIndex) {
-        color = '#ff3b30';
+        color = '#d32f2f';
       }
 
       let iconElement = undefined;
 
       if (icons && icons[i]) {
-        iconElement = <Image source={icons[i]} style={styles.icon} />;
+        const iconStyle = [styles.icon]
+        if (textStyle.color !== undefined && textStyle.color !== null) {
+          iconStyle.push({ tintColor: textStyle.color })
+        }
+        iconElement = <Image source={icons[i]} resizeMode="contain" style={iconStyle} />;
       }
 
       optionViews.push(
@@ -104,18 +109,22 @@ class ActionGroup extends React.Component {
           onPress={() => onSelect(i)}
           style={styles.button}>
           {iconElement}
-          <Text style={[styles.text, { color }, textStyle]}>{options[i]}</Text>
+          <Text style={[styles.text, { color }, textStyle]}>
+            {options[i]}
+          </Text>
         </TouchableNativeFeedbackSafe>
       );
 
       if (i < startIndex + length - 1) {
-        optionViews.push(<View key={`separator-${i}`} style={styles.rowSeparator} />);
+        optionViews.push(
+          <View key={`separator-${i}`} style={styles.rowSeparator} />
+        );
       }
     }
 
     return (
       <View style={styles.groupContainer}>
-        <ScrollView>{optionViews}</ScrollView>
+        {optionViews}
       </View>
     );
   }
@@ -124,6 +133,7 @@ class ActionGroup extends React.Component {
 // Has same API as https://facebook.github.io/react-native/docs/actionsheetios.html
 export default class ActionSheet extends React.Component {
   props: ActionSheetProps;
+  _actionSheetHeight = 360;
   _animateOutCallback: ?() => void = null;
 
   state: ActionSheetState = {
@@ -137,16 +147,16 @@ export default class ActionSheet extends React.Component {
 
   render() {
     let { isVisible } = this.state;
-    let overlay = isVisible ? (
-      <Animated.View
-        style={[
-          styles.overlay,
-          {
-            opacity: this.state.overlayOpacity,
-          },
-        ]}
-      />
-    ) : null;
+    let overlay = isVisible
+      ? <Animated.View
+          style={[
+            styles.overlay,
+            {
+              opacity: this.state.overlayOpacity,
+            },
+          ]}
+        />
+      : null;
 
     let sheet = isVisible ? this._renderSheet() : null;
 
@@ -176,15 +186,16 @@ export default class ActionSheet extends React.Component {
               opacity: this.state.sheetOpacity,
               transform: [
                 {
-                  scale: this.state.sheetOpacity.interpolate({
-                    inputRange: [0, 0.5, 1],
-                    outputRange: [0.6, 1, 1],
+                  translateY: this.state.sheetOpacity.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [this._actionSheetHeight, 0],
                   }),
                 },
               ],
             },
           ]}>
-          <View style={styles.sheet}>
+          <View style={styles.sheet}
+            onLayout={(event) => { this._actionSheetHeight = event.nativeEvent.layout.height }}>
             <ActionGroup
               options={this.state.options.options}
               icons={this.state.options.icons}
@@ -221,15 +232,15 @@ export default class ActionSheet extends React.Component {
 
     Animated.parallel([
       Animated.timing(this.state.overlayOpacity, {
-        toValue: 0.5,
-        easing: Easing.in(Easing.linear),
-        duration: OPACITY_ANIMATION_TIME,
+        toValue: 0.2,
+        easing: EASING_OUT,
+        duration: OPACITY_ANIMATION_IN_TIME,
         useNativeDriver: this.props.useNativeDriver,
       }),
       Animated.timing(this.state.sheetOpacity, {
         toValue: 1,
-        easing: Easing.in(Easing.linear),
-        duration: OPACITY_ANIMATION_TIME,
+        easing: EASING_OUT,
+        duration: OPACITY_ANIMATION_IN_TIME,
         useNativeDriver: this.props.useNativeDriver,
       }),
     ]).start(result => {
@@ -242,7 +253,10 @@ export default class ActionSheet extends React.Component {
 
     this._animateOutCallback = onAnimateOut;
 
-    BackAndroid.addEventListener('actionSheetHardwareBackPress', this._selectCancelButton);
+    BackHandler.addEventListener(
+      'actionSheetHardwareBackPress',
+      this._selectCancelButton
+    );
   }
 
   _selectCancelButton = () => {
@@ -271,7 +285,10 @@ export default class ActionSheet extends React.Component {
       return false;
     }
 
-    BackAndroid.removeEventListener('actionSheetHardwareBackPress', this._selectCancelButton);
+    BackHandler.removeEventListener(
+      'actionSheetHardwareBackPress',
+      this._selectCancelButton
+    );
 
     this.setState({
       isAnimating: true,
@@ -280,14 +297,14 @@ export default class ActionSheet extends React.Component {
     Animated.parallel([
       Animated.timing(this.state.overlayOpacity, {
         toValue: 0,
-        easing: Easing.in(Easing.linear),
-        duration: OPACITY_ANIMATION_TIME,
+        easing: EASING_IN,
+        duration: OPACITY_ANIMATION_OUT_TIME,
         useNativeDriver: this.props.useNativeDriver,
       }),
       Animated.timing(this.state.sheetOpacity, {
         toValue: 0,
-        easing: Easing.in(Easing.linear),
-        duration: OPACITY_ANIMATION_TIME,
+        easing: EASING_IN,
+        duration: OPACITY_ANIMATION_OUT_TIME,
         useNativeDriver: this.props.useNativeDriver,
       }),
     ]).start(result => {
@@ -313,7 +330,9 @@ ActionSheet.defaultProps = {
 
 let TouchableComponent;
 
-TouchableComponent = Platform.Version <= 20 ? TouchableOpacity : TouchableNativeFeedback;
+TouchableComponent = Platform.Version <= 20
+  ? TouchableOpacity
+  : TouchableNativeFeedback;
 
 if (TouchableComponent !== TouchableNativeFeedback) {
   TouchableComponent.SelectableBackground = () => ({});
@@ -330,11 +349,17 @@ class TouchableNativeFeedbackSafe extends React.Component {
     if (TouchableComponent === TouchableNativeFeedback) {
       return (
         <TouchableComponent {...this.props} style={{}}>
-          <View style={this.props.style}>{this.props.children}</View>
+          <View style={this.props.style}>
+            {this.props.children}
+          </View>
         </TouchableComponent>
       );
     } else {
-      return <TouchableComponent {...this.props}>{this.props.children}</TouchableComponent>;
+      return (
+        <TouchableComponent {...this.props}>
+          {this.props.children}
+        </TouchableComponent>
+      );
     }
   }
 }
@@ -342,26 +367,25 @@ class TouchableNativeFeedbackSafe extends React.Component {
 let styles = StyleSheet.create({
   groupContainer: {
     backgroundColor: '#fefefe',
-    borderRadius: 4,
-    borderColor: '#cbcbcb',
-    borderWidth: PIXEL,
+    borderColor: '#ffffff',
+    borderTopWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
-    marginHorizontal: 16,
-    marginBottom: 8,
+    paddingVertical: 8,
   },
   button: {
     justifyContent: 'flex-start',
     alignItems: 'center',
     flexDirection: 'row',
-    height: 50,
+    height: 48,
     paddingHorizontal: 16,
   },
   icon: {
-    marginRight: 15,
+    width: 24,
+    height: 24,
+    marginRight: 32,
   },
   text: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 16,
     textAlignVertical: 'center',
   },
   rowSeparator: {
@@ -384,7 +408,7 @@ let styles = StyleSheet.create({
     bottom: 0,
     top: 0,
     backgroundColor: 'transparent',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     justifyContent: 'center',
     flexDirection: 'row',
   },
