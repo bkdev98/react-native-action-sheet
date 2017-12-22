@@ -1,16 +1,18 @@
-# react-native-action-sheet [![Slack](https://slack.expo.io/badge.svg)](https://slack.expo.io)
+# react-native-awesome-action-sheet
 
-ActionSheet is a cross-platform React Native component that uses the native UIActionSheet on iOS and a JS implementation on Android. Almost a drop in replacement for [ActionSheetIOS](https://facebook.github.io/react-native/docs/actionsheetios.html) except it cannot be called statically.
+ActionSheet is a cross-platform React Native component that uses the native UIActionSheet on iOS and a JS implementation with material design on Android. Almost a drop in replacement for [ActionSheetIOS](https://facebook.github.io/react-native/docs/actionsheetios.html) except it cannot be called statically.
 
 ## Installation
+
 ```
-npm install @expo/react-native-action-sheet
+npm install react-native-awesome-action-sheet
 ```
 
-## Try it out
-
-Try it with Expo: https://expo.io/@community/react-native-action-sheet-example
+Using yarn:
+```
+yarn add react-native-awesome-action-sheet
+```
 
 ## Usage
 
-[See the example app source](https://github.com/expo/react-native-action-sheet/tree/master/example)
+[See the example app source on Snack](https://snack.expo.io/BkYg9i9Gf)
