@@ -1,5 +1,5 @@
 {
-  "name": "@bkdev98/react-native-awesome-action-sheet",
+  "name": "react-native-awesome-action-sheet",
   "version": "1.0.0",
   "description": "A cross-platform ActionSheet for React Native",
   "main": "index.js",
